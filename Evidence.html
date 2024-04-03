@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0ZLYYNQ68Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0ZLYYNQ68Z');
+</script>
+<title>Evidence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://bugbounty.zip/css/styles.css">
+<style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 50vh;
+    }
+
+    .container button {
+        width: 23%;
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-right: 10px;
+        margin-bottom: 20px;
+        border: none;
+        color: white;
+        background-color: #4CAF50;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+	
+	@media only screen and (max-width: 600px) {
+        .container {
+            width: 90%;
+        }
+
+        .title, .description {
+            text-align: center;
+        }
+
+        .container button {
+            width: 100%;
+        }
+    }
+	
+</style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-item">
+            <a href="https://bugbounty.zip/index.html" target="_blank">Home</a>
+        </div>
+        <div class="nav-item">
+            <div class="dropdown">
+                <a href="#">Tools</a>
+                <div class="dropdown-content">
+                    <a href="https://bugbounty.zip/RapidHand.html" target="_blank">Rapid-Hand</a>
+                    <a href="https://bugbounty.zip/BoilOver.html" target="_blank">Boil Over</a>
+                    <a href="https://bugbounty.zip/Hope.html" target="_blank">Hope</a>
+                    <a href="https://bugbounty.zip/Evidence.html" target="_blank">Evidence</a>
+                    <a href="https://bugbounty.zip/otp.html" target="_blank">OTP Generator</a>
+                    <a href="https://bugbounty.zip/UltraSoundJS.html" target="_blank">UltraSoundScan</a>
+                </div>
+            </div>
+        </div>
+        <div class="nav-item">
+            <a href="https://bugbounty.zip/About.html" target="_blank">About</a>
+        </div>
+        <div class="nav-item">
+            <a href="https://bugbounty.zip/Patch.html" target="_blank">Patch Notes</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="title">Evidence</div>
+        <div class="description">Don't let a single bug escape unnoticed, Evidence is your reliable ally, capturing bugs as they happen.</div>
+
+        <button id="start">Start recording</button>
+<label>
+    <input type="checkbox" id="recordAudio"> Record with Audio
+</label>
+    </div>
+     <div class="footer">
+        <a href="https://twitter.com/Tur24Tur" class="icon-link" target="_blank">
+            <i class="fab fa-twitter-square"></i>
+        </a>
+        <a href="mailto:no-reply@nobugescapes.com" class="icon-link">
+            <i class="fas fa-envelope-square"></i>
+        </a>
+    </div>
+</body>
+<script>
+    let mediaRecorder;
+    let recordedBlobs;
+
+const startButton = document.getElementById('start');
+const recordAudioCheckbox = document.getElementById('recordAudio');
+
+function downloadRecordedVideo() {
+    if (recordedBlobs.length) { // Check if we have valid data chunks
+        const blob = new Blob(recordedBlobs, {type: 'video/webm'});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${new Date().toISOString().slice(0,10)}_${Math.random().toString(36).substring(2, 7)}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+    }
+    startButton.innerHTML = 'Start recording';  // Reset the button text
+}
+
+
+if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia || !navigator.mediaDevices.getUserMedia) {
+    startButton.after('Your browser is not supported for screen recording.');
+    startButton.disabled = true;
+} else {
+    const startRecording = async () => {
+        const shouldRecordAudio = recordAudioCheckbox.checked;
+        const videoStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+
+        let combinedStream = videoStream;
+        if (shouldRecordAudio) {
+            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioTracks = [...videoStream.getAudioTracks(), ...micStream.getAudioTracks()];
+            combinedStream = new MediaStream([...videoStream.getVideoTracks(), ...audioTracks]);
+        }
+
+        recordedBlobs = [];
+        mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+        
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) {
+                recordedBlobs.push(event.data);
+            }
+        };
+
+        combinedStream.getTracks().forEach(track => {
+            track.onended = async () => {
+                if (mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                    await new Promise(r => setTimeout(r, 500));  // Delay to ensure enough data chunks
+                    downloadRecordedVideo();
+                }
+            };
+        });
+
+        mediaRecorder.start();
+        startButton.innerHTML = 'Recording...';
+    }
+
+    startButton.onclick = startRecording;
+}
+
+
+
+</script>
+
+
+
+
+</html>
